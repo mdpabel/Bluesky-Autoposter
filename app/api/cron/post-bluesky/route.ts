@@ -16,21 +16,10 @@ type Result = {
 export async function GET(req: NextRequest) {
   const isDev = process.env.NODE_ENV === 'development';
   const auth = req.headers.get('authorization');
-
-  // 💡 1. Added temporary debug logs to catch mismatches in the Vercel console
-  console.log('[Cron Debug] Incoming Auth Header:', auth);
-  console.log(
-    '[Cron Debug] Vercel Env Secret:',
-    process.env.EXTERNAL_CRON_SECRET,
-  );
-
-  // 💡 2. Switched to a custom variable name to prevent Vercel system overrides
-  const strictSecret = process.env.EXTERNAL_CRON_SECRET;
-
-  // if (!isDev && auth !== `Bearer ${strictSecret}`) {
-  //   console.warn('[cron] Unauthorized request');
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  // }
+  if (!isDev && auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    console.warn('[cron] Unauthorized request');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const results: Result[] = [];
   const now = Date.now();
