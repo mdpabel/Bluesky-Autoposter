@@ -27,10 +27,10 @@ export async function GET(req: NextRequest) {
   // 💡 2. Switched to a custom variable name to prevent Vercel system overrides
   const strictSecret = process.env.EXTERNAL_CRON_SECRET;
 
-  if (!isDev && auth !== `Bearer ${strictSecret}`) {
-    console.warn('[cron] Unauthorized request');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // if (!isDev && auth !== `Bearer ${strictSecret}`) {
+  //   console.warn('[cron] Unauthorized request');
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
 
   const results: Result[] = [];
   const now = Date.now();
