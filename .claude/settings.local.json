@@ -5,7 +5,12 @@
       "Bash(npx create-next-app@15 *)",
       "Bash(npm install *)",
       "Bash(npx tsc *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(curl -s -A \"Bluesky-Bot/1.0\" \"https://www.mdpabel.com/guides/is-wordpress-good-for-ecommerce/\")",
+      "Bash(curl -s -I \"https://cms.mdpabel.com/wp-content/uploads/2026/05/is-wp-good-for-woocommerce.png\")",
+      "Bash(curl *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

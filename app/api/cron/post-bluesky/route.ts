@@ -55,6 +55,7 @@ export async function GET(req: NextRequest) {
       await recordPost({ guid: item.guid, title: item.title, url: item.link, status: 'failed', timestamp: now, error: msg })
       results.push({ guid: item.guid, status: 'failed', detail: msg })
     }
+    break
   }
 
   const summary = {

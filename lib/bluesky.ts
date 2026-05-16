@@ -1,9 +1,29 @@
 import { BskyAgent, RichText } from '@atproto/api'
+import sharp from 'sharp'
 
 interface OgCard {
   title: string
   description: string
   imageUrl: string
+}
+
+async function fetchImageBuffer(imageUrl: string): Promise<{ buffer: Buffer; mimeType: string } | null> {
+  // cms.mdpabel.com uses a self-signed cert; temporarily disable TLS verification for this fetch only
+  const prev = process.env.NODE_TLS_REJECT_UNAUTHORIZED
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+  try {
+    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(8000) })
+    if (!res.ok) return null
+    return {
+      buffer: Buffer.from(await res.arrayBuffer()),
+      mimeType: res.headers.get('content-type')?.split(';')[0] ?? 'image/jpeg',
+    }
+  } catch {
+    return null
+  } finally {
+    if (prev === undefined) delete process.env.NODE_TLS_REJECT_UNAUTHORIZED
+    else process.env.NODE_TLS_REJECT_UNAUTHORIZED = prev
+  }
 }
 
 async function fetchOgCard(url: string): Promise<OgCard> {
@@ -26,10 +46,15 @@ async function fetchOgCard(url: string): Promise<OgCard> {
       return ''
     }
 
+    const rawImage = meta('og:image') || meta('twitter:image') || ''
+    const imageUrl = rawImage
+      ? new URL(rawImage, url).href  // resolve relative URLs against the article URL
+      : ''
+
     return {
       title: meta('og:title') || meta('twitter:title') || url,
       description: meta('og:description') || meta('twitter:description') || '',
-      imageUrl: meta('og:image') || meta('twitter:image') || '',
+      imageUrl,
     }
   } catch {
     return { title: url, description: '', imageUrl: '' }
@@ -51,15 +76,27 @@ export async function postToBluesky(
 
   const card = await fetchOgCard(url)
 
+  const BSKY_MAX_BYTES = 950_000 // stay safely under Bluesky's 1 MB blob limit
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let thumb: any
   if (card.imageUrl) {
     try {
-      const imgRes = await fetch(card.imageUrl, { signal: AbortSignal.timeout(8000) })
-      const buffer = new Uint8Array(await imgRes.arrayBuffer())
-      const mimeType = imgRes.headers.get('content-type') ?? 'image/jpeg'
-      const { data } = await agent.uploadBlob(buffer, { encoding: mimeType })
-      thumb = data.blob
+      const img = await fetchImageBuffer(card.imageUrl)
+      if (img) {
+        let { buffer, mimeType } = img
+
+        if (buffer.byteLength > BSKY_MAX_BYTES) {
+          buffer = await sharp(buffer)
+            .resize({ width: 1200, withoutEnlargement: true })
+            .jpeg({ quality: 75 })
+            .toBuffer()
+          mimeType = 'image/jpeg'
+        }
+
+        const { data } = await agent.uploadBlob(new Uint8Array(buffer), { encoding: mimeType })
+        thumb = data.blob
+      }
     } catch {
       // thumb is optional — skip silently
     }

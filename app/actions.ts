@@ -36,11 +36,13 @@ export async function runNow(): Promise<RunResult> {
       await markAsPosted(item.guid)
       await recordPost({ guid: item.guid, title: item.title, url: item.link, bskyUrl, status: 'posted', timestamp: now })
       result.posted++
+      break
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       await recordPost({ guid: item.guid, title: item.title, url: item.link, status: 'failed', timestamp: now, error: msg })
       result.errors.push(`${item.title}: ${msg}`)
       result.failed++
+      break
     }
   }
 
