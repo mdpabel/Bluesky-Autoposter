@@ -16,6 +16,7 @@ type Result = {
 export async function GET(req: NextRequest) {
   const isDev = process.env.NODE_ENV === 'development';
   const auth = req.headers.get('authorization');
+
   if (!isDev && auth !== `Bearer ${process.env.CRON_SECRET}`) {
     console.warn('[cron] Unauthorized request');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
