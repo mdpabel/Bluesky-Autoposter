@@ -52,7 +52,10 @@ export async function GET(req: NextRequest) {
         item.contentSnippet,
         item.link,
       );
-      const { uri, bskyUrl } = await postToBluesky(postText, item.link);
+      const { uri, bskyUrl } = await postToBluesky(postText, item.link, {
+        title: item.title,
+        description: item.contentSnippet,
+      });
       await markAsPosted(item.guid);
       await recordPost({
         guid: item.guid,

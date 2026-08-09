@@ -7,8 +7,8 @@ Personal dashboard that automatically posts new [mdpabel.com](https://mdpabel.co
 1. A Vercel cron job fires every day at **13:00 UTC**
 2. Fetches the RSS feed from `mdpabel.com/rss.xml`
 3. Filters out articles already posted (tracked in Upstash Redis)
-4. Generates a caption via GPT-4o-mini
-5. Posts with a link card via `@atproto/api`
+4. Generates an issue-led, search-friendly caption via GPT-5.6 Terra
+5. Downloads and optimizes the article's featured image, then posts a complete link card via `@atproto/api`
 6. Records the result to Redis history
 
 ## Stack
@@ -18,7 +18,7 @@ Personal dashboard that automatically posts new [mdpabel.com](https://mdpabel.co
 | Framework | Next.js 15 (App Router, TypeScript, Tailwind CSS) |
 | Hosting + cron | Vercel |
 | Persistence | Upstash Redis |
-| Caption gen | OpenAI GPT-4o-mini |
+| Caption gen | OpenAI GPT-5.6 Terra (configurable) |
 | Bluesky API | `@atproto/api` |
 
 ## Local setup
@@ -29,6 +29,13 @@ cp .env.local.example .env.local   # fill in the values
 npm run dev
 ```
 
+Preview generated copy or validate a featured image without publishing:
+
+```bash
+npm run preview-post -- "part of an article title"
+npm run preview-image -- "part of an article title"
+```
+
 ## Environment variables
 
 | Variable | Description |
@@ -36,6 +43,7 @@ npm run dev
 | `BLUESKY_IDENTIFIER` | Your Bluesky handle or custom domain (e.g. `mdpabel.com`) |
 | `BLUESKY_APP_PASSWORD` | Bluesky app password |
 | `OPENAI_API_KEY` | OpenAI API key |
+| `OPENAI_POST_MODEL` | Optional model override (defaults to `gpt-5.6-terra`) |
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST URL |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token |
 | `CRON_SECRET` | Random secret — Vercel sends this as `Authorization: Bearer <secret>` |

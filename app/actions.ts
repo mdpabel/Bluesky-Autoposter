@@ -32,7 +32,10 @@ export async function runNow(): Promise<RunResult> {
     }
     try {
       const text = await generateBlueskyPost(item.title, item.contentSnippet, item.link)
-      const { uri: _uri, bskyUrl } = await postToBluesky(text, item.link)
+      const { bskyUrl } = await postToBluesky(text, item.link, {
+        title: item.title,
+        description: item.contentSnippet,
+      })
       await markAsPosted(item.guid)
       await recordPost({ guid: item.guid, title: item.title, url: item.link, bskyUrl, status: 'posted', timestamp: now })
       result.posted++
