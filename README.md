@@ -9,7 +9,7 @@ The app has two independent publishing streams:
 1. The RSS cron runs daily at **13:00 UTC**, finds the next unposted article, generates an issue-led caption, attaches its featured-image card, and records the result.
 2. The book scheduler has six possible windows between **09:00 and 21:59 Asia/Dhaka**. A deterministic daily shuffle activates two windows by default, or three when configured.
 3. Book selection prefers a different chapter for each post that day and allows no more than one soft/direct promotion per Dhaka day.
-4. Pure-value and soft records are plain text. Only four direct promotional records attach the book link card.
+4. Pure-value records are plain text. The 13 soft and four direct promotional records attach the book link card.
 5. Redis prevents duplicate content and duplicate processing of the same daily window.
 
 The app ships with 204 reviewed records in `data/book-content/catalog.json`. Scheduled book posts do not call OpenAI or generate new copy.
@@ -53,7 +53,7 @@ npm run preview-image -- "part of an article title"
 | `CRON_SECRET` | Private random string of at least 16 characters |
 | `BOOK_POSTS_PER_DAY` | `2` by default; set to `3` for three book posts per Dhaka day |
 | `BOOK_SCHEDULE_SEED` | Private random string used to vary daily windows and content order |
-| `BOOK_PROMOTION_URL` | Landing page attached only to direct book promotions |
+| `BOOK_PROMOTION_URL` | Landing page attached to soft and direct book promotions |
 | `BASIC_AUTH_USER` | Dashboard login username |
 | `BASIC_AUTH_PASSWORD` | Dashboard login password |
 

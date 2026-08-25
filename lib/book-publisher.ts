@@ -48,8 +48,9 @@ export async function publishNextBookContent({
   if (!record) return null
 
   const now = Date.now()
+  const hasBookLink = record.promotion !== 'value'
   try {
-    const posted = record.promotion === 'direct'
+    const posted = hasBookLink
       ? await postToBluesky(record.post, BOOK_PROMOTION_URL, {
           title: 'WordPress Malware Removal for Developers & Site Owners',
           description: 'A practical investigation and recovery guide by MD Pabel.',
@@ -62,7 +63,7 @@ export async function publishNextBookContent({
       contentId: record.id,
       source: 'book',
       title: record.hook,
-      url: record.promotion === 'direct' ? BOOK_PROMOTION_URL : undefined,
+      url: hasBookLink ? BOOK_PROMOTION_URL : undefined,
       text: record.post,
       promotion: record.promotion,
       bskyUrl: posted.bskyUrl,
@@ -78,7 +79,7 @@ export async function publishNextBookContent({
       contentId: record.id,
       source: 'book',
       title: record.hook,
-      url: record.promotion === 'direct' ? BOOK_PROMOTION_URL : undefined,
+      url: hasBookLink ? BOOK_PROMOTION_URL : undefined,
       text: record.post,
       promotion: record.promotion,
       status: 'failed',
