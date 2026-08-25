@@ -1,6 +1,10 @@
 import { BskyAgent, RichText } from '@atproto/api'
 import sharp from 'sharp'
-import { formatBlueskyPost } from './post-text'
+import {
+  BLUESKY_MAX_GRAPHEMES,
+  countGraphemes,
+  formatBlueskyPost,
+} from './post-text'
 
 const BLUESKY_MAX_BLOB_BYTES = 950_000
 const FETCH_ATTEMPTS = 2
@@ -180,4 +184,34 @@ export async function postToBluesky(
   const bskyUrl = `https://bsky.app/profile/${handle}/post/${rkey}`
 
   return { uri, bskyUrl }
+}
+
+export async function postTextToBluesky(
+  text: string,
+): Promise<{ uri: string; bskyUrl: string }> {
+  const safeText = text.trim()
+  if (!safeText) throw new Error('Cannot publish an empty Bluesky post')
+  if (countGraphemes(safeText) > BLUESKY_MAX_GRAPHEMES) {
+    throw new Error(`Book post exceeds ${BLUESKY_MAX_GRAPHEMES} graphemes`)
+  }
+
+  const agent = new BskyAgent({ service: 'https://bsky.social' })
+  await agent.login({
+    identifier: process.env.BLUESKY_IDENTIFIER!,
+    password: process.env.BLUESKY_APP_PASSWORD!,
+  })
+
+  const richText = new RichText({ text: safeText })
+  await richText.detectFacets(agent)
+  const { uri } = await agent.post({
+    text: richText.text,
+    facets: richText.facets,
+  })
+
+  const rkey = uri.split('/').pop()!
+  const handle = process.env.BLUESKY_IDENTIFIER!
+  return {
+    uri,
+    bskyUrl: `https://bsky.app/profile/${handle}/post/${rkey}`,
+  }
 }
