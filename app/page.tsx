@@ -1,21 +1,11 @@
 import {
-  getBookDayState,
   getHistory,
-  getPostedBookIds,
   getPostedGuids,
   PostRecord,
 } from '@/lib/redis';
 import { fetchFeedItems, FeedItem } from '@/lib/rss';
 import { TriggerButton } from '@/app/components/TriggerButton';
-import { BookTriggerButton } from '@/app/components/BookTriggerButton';
 import { LogoutButton } from '@/app/components/LogoutButton';
-import { BOOK_CONTENT, rankBookContentCandidates } from '@/lib/book-content';
-import {
-  getActiveBookSlots,
-  getBookPostsPerDay,
-  getBookSlotLabel,
-  getDhakaDateKey,
-} from '@/lib/book-schedule';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -109,25 +99,14 @@ function EmptyState({ message }: { message: string }) {
 // ── page ──────────────────────────────────────────────────────────────────
 
 export default async function Dashboard() {
-  const dateKey = getDhakaDateKey();
-  const [history, rawItems, postedGuids, postedBookIds, bookDayState] = await Promise.all([
+  const [history, rawItems, postedGuids] = await Promise.all([
     getHistory(50).catch((): PostRecord[] => []),
     fetchFeedItems().catch((): FeedItem[] => []),
     getPostedGuids().catch((): string[] => []),
-    getPostedBookIds().catch((): string[] => []),
-    getBookDayState(dateKey).catch(() => ({ chapters: [], hasPromotion: false, postedCount: 0 })),
   ]);
 
   const postedSet = new Set(postedGuids);
   const upcoming = rawItems.filter((item) => !postedSet.has(item.guid));
-  const upcomingBook = rankBookContentCandidates({
-    postedIds: postedBookIds,
-    excludedChapters: bookDayState.chapters,
-    allowPromotional: !bookDayState.hasPromotion,
-    seed: `${dateKey}:dashboard`,
-  });
-  const activeBookSlots = getActiveBookSlots(dateKey);
-  const bookReady = BOOK_CONTENT.length - postedBookIds.length;
 
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const totalPosted = history.filter((r) => r.status === 'posted').length;
@@ -155,7 +134,7 @@ export default async function Dashboard() {
                 Bluesky Autoposter
               </h1>
               <p className='text-slate-400 text-xs truncate leading-tight'>
-                @mdpabel.com · RSS daily · {getBookPostsPerDay()} varied book posts/day
+                @mdpabel.com · RSS daily
                 {lastRun && (
                   <>
                     {' · '}Last run{' '}
@@ -168,7 +147,6 @@ export default async function Dashboard() {
             </div>
           </div>
           <div className='flex items-center gap-2'>
-            <BookTriggerButton />
             <TriggerButton />
             <LogoutButton />
           </div>
@@ -177,7 +155,7 @@ export default async function Dashboard() {
 
       <main className='space-y-6 mx-auto px-6 py-8 max-w-6xl'>
         {/* ── stats ── */}
-        <div className='gap-4 grid grid-cols-2 sm:grid-cols-5'>
+        <div className='gap-4 grid grid-cols-2 sm:grid-cols-4'>
           <StatCard
             label='Total Posted'
             value={totalPosted}
@@ -209,12 +187,6 @@ export default async function Dashboard() {
                 ? 'no runs yet'
                 : `${totalPosted + failed} attempts`
             }
-          />
-          <StatCard
-            label='Book Ready'
-            value={bookReady}
-            accent='text-violet-600'
-            sub={`${postedBookIds.length} of ${BOOK_CONTENT.length} posted`}
           />
         </div>
 
@@ -347,52 +319,13 @@ export default async function Dashboard() {
           </section>
         </div>
 
-        <section className='bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden'>
-          <div className='flex flex-wrap justify-between items-center gap-3 px-6 py-4 border-slate-100 border-b'>
-            <div>
-              <h2 className='font-semibold text-slate-800'>Book Content Queue</h2>
-              <p className='mt-1 text-slate-400 text-xs'>
-                {bookReady} reviewed posts remain · today: {activeBookSlots.map(getBookSlotLabel).join(' and ')}
-              </p>
-            </div>
-            <span className='inline-flex items-center bg-violet-50 px-2.5 py-1 rounded-full font-medium text-violet-700 text-xs'>
-              {getBookPostsPerDay()} posts/day
-            </span>
-          </div>
-
-          {upcomingBook.length === 0 ? (
-            <EmptyState message='All 204 book insights have been posted.' />
-          ) : (
-            <div className='gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 p-6'>
-              {upcomingBook.slice(0, 6).map((record) => (
-                <article key={record.id} className='bg-slate-50 p-4 border border-slate-100 rounded-xl'>
-                  <div className='flex justify-between items-center gap-2 mb-3'>
-                    <span className='font-medium text-violet-700 text-xs'>
-                      {record.id} · Chapter {record.chapter}
-                    </span>
-                    <span className='bg-white px-2 py-0.5 border border-slate-200 rounded-full text-slate-500 text-[11px]'>
-                      {record.promotion}
-                    </span>
-                  </div>
-                  <p className='text-slate-800 text-sm whitespace-pre-line leading-6'>
-                    {record.post}
-                  </p>
-                  <p className='mt-3 text-slate-400 text-xs'>
-                    {record.graphemeCount}/300 · {record.audience}
-                  </p>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
       </main>
 
       {/* ── footer ── */}
       <footer className='mx-auto px-6 py-8 max-w-6xl'>
         <p className='text-slate-400 text-xs text-center'>
           RSS runs daily at{' '}
-          <span className='font-medium text-slate-500'>13:00 UTC</span>. Book
-          posts use randomized Dhaka-time windows via Vercel · RSS:{' '}
+          <span className='font-medium text-slate-500'>13:00 UTC</span>. RSS:{' '}
           <a
             href='https://www.mdpabel.com/rss.xml'
             target='_blank'

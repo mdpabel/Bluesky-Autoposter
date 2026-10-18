@@ -59,8 +59,10 @@ export async function GET(req: NextRequest) {
       await markAsPosted(item.guid);
       await recordPost({
         guid: item.guid,
+        source: 'rss',
         title: item.title,
         url: item.link,
+        text: postText,
         bskyUrl,
         status: 'posted',
         timestamp: now,
@@ -72,6 +74,7 @@ export async function GET(req: NextRequest) {
       console.error(`[cron] Failed to post ${item.guid}: ${msg}`);
       await recordPost({
         guid: item.guid,
+        source: 'rss',
         title: item.title,
         url: item.link,
         status: 'failed',

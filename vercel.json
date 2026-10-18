@@ -3,30 +3,6 @@
     {
       "path": "/api/cron/post-bluesky",
       "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/cron/post-book-content/09-bdt",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/post-book-content/11-bdt",
-      "schedule": "0 5 * * *"
-    },
-    {
-      "path": "/api/cron/post-book-content/13-bdt",
-      "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/post-book-content/15-bdt",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/post-book-content/17-bdt",
-      "schedule": "0 11 * * *"
-    },
-    {
-      "path": "/api/cron/post-book-content/21-bdt",
-      "schedule": "0 15 * * *"
     }
   ]
 }

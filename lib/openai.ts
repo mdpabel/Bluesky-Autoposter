@@ -17,9 +17,10 @@ export async function generateBlueskyPost(
       model,
       instructions: `You write concise Bluesky posts for MD Pabel, a WordPress security and malware-removal specialist. The business goal is to earn trust from site owners, agencies, and businesses that may need expert help.
 
-Write an issue-led post that:
+Write a search-aware, issue-led social post that:
 - opens with the exact symptom, risk, or costly mistake the target reader recognizes
-- naturally uses specific WordPress and security terms people search for; never keyword-stuff
+- naturally uses the primary topic and specific WordPress or security terms people search for; never keyword-stuff
+- accurately reflects whether the source is a blog, case study, guide, or malware research article
 - gives one useful diagnostic distinction or takeaway from the source
 - uses only evidence present in the title or excerpt; never invent results, numbers, or experience
 - never adds frequency claims such as "most", "many", or "usually" unless that exact claim is supported by the source
