@@ -6,6 +6,7 @@ import {
   formatBlueskyPost,
   getBlueskyBodyBudget,
 } from '../lib/post-text'
+import { PROMOTION_REPLY_TEXT } from '../lib/bluesky'
 
 const url = 'https://www.mdpabel.com/blog/wordpress-malware-scan-clean-site-still-hacked/'
 
@@ -52,4 +53,13 @@ test('rejects a URL that cannot fit within Bluesky limits', () => {
     () => formatBlueskyPost('Body', `https://example.com/${'a'.repeat(300)}`),
     /URL is too long/,
   )
+})
+
+test('promotion reply contains the service and book links within the Bluesky limit', () => {
+  assert.equal(
+    PROMOTION_REPLY_TEXT,
+    'WordPress Malware Removal Service:\nhttps://www.mdpabel.com/wordpress-malware-removal/\n\n' +
+      'WordPress Malware Removal Book:\nhttps://www.mdpabel.com/books/wordpress-malware-removal/',
+  )
+  assert.ok(countGraphemes(PROMOTION_REPLY_TEXT) <= BLUESKY_MAX_GRAPHEMES)
 })

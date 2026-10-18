@@ -10,6 +10,14 @@ const BLUESKY_MAX_BLOB_BYTES = 950_000
 const FETCH_ATTEMPTS = 2
 const FETCH_TIMEOUT_MS = 10_000
 
+export const PROMOTION_REPLY_TEXT = [
+  'WordPress Malware Removal Service:',
+  'https://www.mdpabel.com/wordpress-malware-removal/',
+  '',
+  'WordPress Malware Removal Book:',
+  'https://www.mdpabel.com/books/wordpress-malware-removal/',
+].join('\n')
+
 export interface LinkCardFallback {
   title: string
   description?: string
@@ -145,7 +153,7 @@ export async function postToBluesky(
   text: string,
   url: string,
   fallback: LinkCardFallback,
-): Promise<{ uri: string; bskyUrl: string }> {
+): Promise<{ uri: string; bskyUrl: string; replyUri: string }> {
   const safeText = formatBlueskyPost(text, url)
   const agent = new BskyAgent({ service: 'https://bsky.social' })
 
@@ -165,7 +173,7 @@ export async function postToBluesky(
     encoding: card.mimeType,
   })
 
-  const { uri } = await agent.post({
+  const { uri, cid } = await agent.post({
     text: rt.text,
     facets: rt.facets,
     embed: {
@@ -179,11 +187,36 @@ export async function postToBluesky(
     },
   })
 
+  let replyUri: string
+  try {
+    const reply = new RichText({ text: PROMOTION_REPLY_TEXT })
+    await reply.detectFacets(agent)
+    const result = await agent.post({
+      text: reply.text,
+      facets: reply.facets,
+      reply: {
+        root: { uri, cid },
+        parent: { uri, cid },
+      },
+    })
+    replyUri = result.uri
+  } catch (error) {
+    // Keep publishing atomic: remove the new root post so a later retry cannot duplicate it.
+    try {
+      await agent.deletePost(uri)
+    } catch (rollbackError) {
+      const publishMessage = error instanceof Error ? error.message : String(error)
+      const rollbackMessage = rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+      throw new Error(`Promotion reply failed (${publishMessage}) and root-post rollback failed (${rollbackMessage})`)
+    }
+    throw error
+  }
+
   const rkey = uri.split('/').pop()!
   const handle = process.env.BLUESKY_IDENTIFIER!
   const bskyUrl = `https://bsky.app/profile/${handle}/post/${rkey}`
 
-  return { uri, bskyUrl }
+  return { uri, bskyUrl, replyUri }
 }
 
 export async function postTextToBluesky(

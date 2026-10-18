@@ -4,7 +4,7 @@ Personal dashboard that publishes new [mdpabel.com](https://mdpabel.com) article
 
 ## Publishing
 
-The RSS cron runs daily at **13:00 UTC**, finds the next unposted article, generates an issue-led caption, attaches its featured-image card, and records the result.
+The RSS cron runs daily at **13:00 UTC**, finds the next unposted article, generates an issue-led caption, attaches its featured-image card, adds a reply linking to the malware-removal service and book, and records the result.
 
 Book-content posting is stopped. The former book cron endpoint returns HTTP 410, the book schedules and manual button are removed, and the reviewed catalog remains in `data/book-content/catalog.json` for reference. Existing book posts remain visible in history.
 
